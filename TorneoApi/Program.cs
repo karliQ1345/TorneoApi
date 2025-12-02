@@ -1,4 +1,7 @@
 
+using Microsoft.EntityFrameworkCore;
+using TorneoApi.Data;
+
 namespace TorneoApi
 {
     public class Program
@@ -8,7 +11,9 @@ namespace TorneoApi
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(connectionString));
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
