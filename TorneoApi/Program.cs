@@ -17,7 +17,6 @@ namespace TorneoApi
                 options.UseNpgsql(connectionString));
             builder.Services.AddControllers().AddJsonOptions(x =>
             {
-                // Esto corta los bucles infinitos y arregla el Error 500
                 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                 x.JsonSerializerOptions.WriteIndented = true;
             });
