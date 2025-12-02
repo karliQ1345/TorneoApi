@@ -23,9 +23,34 @@ namespace TorneoApi.Controllers
 
         // GET: api/Partidos
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Partido>>> GetPartidos()
+        public async Task<ActionResult<IEnumerable<Partido>>> GetPartidos(
+             [FromQuery] int? torneoId,
+             [FromQuery] int? fase,
+             [FromQuery] bool? jugado)
         {
-            return await _context.Partidos.ToListAsync();
+            // Empezamos con todos los partidos
+            var query = _context.Partidos.AsQueryable();
+
+            // Si la consola manda torneoId, filtramos por eso
+            if (torneoId.HasValue)
+            {
+                query = query.Where(p => p.TorneoId == torneoId.Value);
+            }
+
+            // Si la consola manda fase, filtramos por eso
+            if (fase.HasValue)
+            {
+                // Convertimos el int a Enum para comparar
+                query = query.Where(p => (int)p.Fase == fase.Value);
+            }
+
+            // Si la consola quiere solo los no jugados (jugado=false)
+            if (jugado.HasValue)
+            {
+                query = query.Where(p => p.Jugado == jugado.Value);
+            }
+
+            return await query.ToListAsync();
         }
 
         // GET: api/Partidos/5
@@ -33,12 +58,7 @@ namespace TorneoApi.Controllers
         public async Task<ActionResult<Partido>> GetPartido(int id)
         {
             var partido = await _context.Partidos.FindAsync(id);
-
-            if (partido == null)
-            {
-                return NotFound();
-            }
-
+            if (partido == null) return NotFound();
             return partido;
         }
 
@@ -47,11 +67,9 @@ namespace TorneoApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPartido(int id, Partido partido)
         {
-            if (id != partido.Id)
-            {
-                return BadRequest();
-            }
+            if (id != partido.Id) return BadRequest();
 
+            // Marcamos el objeto como modificado
             _context.Entry(partido).State = EntityState.Modified;
 
             try
@@ -60,14 +78,8 @@ namespace TorneoApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!PartidoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                if (!PartidoExists(id)) return NotFound();
+                else throw;
             }
 
             return NoContent();
